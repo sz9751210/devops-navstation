@@ -11,10 +11,16 @@ interface NavState {
   currentEnvId: EnvironmentKey;
   searchQuery: string;
 
+  // [新增] 搜尋視窗狀態
+  isSearchOpen: boolean;
+
   // Actions
   setEnvironment: (id: EnvironmentKey) => void;
   setSearchQuery: (query: string) => void;
   
+  // [新增] 切換搜尋視窗
+  setSearchOpen: (isOpen: boolean) => void;
+
   // Selectors (Helpers)
   getCurrentEnv: () => Environment;
 }
@@ -25,10 +31,16 @@ export const useNavStore = create<NavState>((set, get) => ({
   currentEnvId: 'dev', // 預設環境
   searchQuery: '',
 
+  // [新增] 預設關閉
+  isSearchOpen: false,
+
   // 2. Actions
   setEnvironment: (id) => set({ currentEnvId: id }),
   setSearchQuery: (query) => set({ searchQuery: query }),
 
+  // [新增] Action
+  setSearchOpen: (isOpen) => set({ isSearchOpen: isOpen }),
+  
   // 3. Helper to get the full Environment object
   getCurrentEnv: () => {
     const { config, currentEnvId } = get();
