@@ -7,124 +7,144 @@ import { resolveUrl, isLinkVisible } from '@/lib/url-resolver';
 import { DynamicIcon } from '@/components/ui/DynamicIcon';
 import { ExternalLink, Copy, Check, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { deleteLink } from '@/lib/actions';
+import { Trash2 } from 'lucide-react';
 
 interface SmartLinkCardProps {
-  item: LinkItem;
+    item: LinkItem;
+    categoryId: string;
+    groupId: string;
 }
 
-export function SmartLinkCard({ item }: SmartLinkCardProps) {
-  const [isCopied, setIsCopied] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
-  
-  // 1. 從 Store 獲取當前環境完整物件
-  const currentEnv = useNavStore(state => state.getCurrentEnv());
+export function SmartLinkCard({ item, categoryId, groupId }: SmartLinkCardProps) {
+    const [isCopied, setIsCopied] = useState(false);
+    const [showInfo, setShowInfo] = useState(false);
 
-  // 2. 判斷可見性 (若不可見直接回傳 null，不渲染)
-  if (!isLinkVisible(item, currentEnv.id)) {
-    return null;
-  }
+    const { getCurrentEnv, isEditMode } = useNavStore();
+    // 1. 從 Store 獲取當前環境完整物件
+    const currentEnv = useNavStore(state => state.getCurrentEnv());
 
-  // 3. 核心魔術：計算最終 URL
-  const resolvedUrl = resolveUrl(item.urlTemplate, currentEnv);
-
-  // 處理複製連結到剪貼簿
-  const handleCopy = async (e: React.MouseEvent) => {
-    e.preventDefault(); // 防止觸發外層連結跳轉
-    e.stopPropagation();
-    try {
-      await navigator.clipboard.writeText(resolvedUrl);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000); // 2秒後恢復圖示
-    } catch (err) {
-      console.error('Failed to copy!', err);
+    // 2. 判斷可見性 (若不可見直接回傳 null，不渲染)
+    if (!isLinkVisible(item, currentEnv.id)) {
+        return null;
     }
-  };
 
-  // 處理切換註解顯示
-  const toggleInfo = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setShowInfo(!showInfo);
-  }
+    // 3. 核心魔術：計算最終 URL
+    const resolvedUrl = resolveUrl(item.urlTemplate, currentEnv);
 
-  return (
-    <div className="group relative rounded-lg border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md hover:border-primary/50">
-      {/* 主要連結區域 (整個卡片可點擊) */}
-      <a 
-        href={resolvedUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block p-4 h-full flex flex-col"
-      >
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <div className={cn("p-2 rounded-md bg-muted transition-colors group-hover:bg-primary/10 group-hover:text-primary")}>
-               <DynamicIcon name={item.icon || 'Link'} className="w-5 h-5" />
-            </div>
-            <h3 className="font-semibold leading-none tracking-tight truncate max-w-[180px]" title={item.title}>
-              {item.title}
-            </h3>
-          </div>
-          
-          {/* 右上角角標區 (External Icon) */}
-          <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
+    // 處理複製連結到剪貼簿
+    const handleCopy = async (e: React.MouseEvent) => {
+        e.preventDefault(); // 防止觸發外層連結跳轉
+        e.stopPropagation();
+        try {
+            await navigator.clipboard.writeText(resolvedUrl);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000); // 2秒後恢復圖示
+        } catch (err) {
+            console.error('Failed to copy!', err);
+        }
+    };
 
-        {/* URL Preview (顯示解析後的網域，增加信任感) */}
-        <div className="text-xs text-muted-foreground truncate pl-[44px] mb-2 opacity-70 font-mono">
-          {new URL(resolvedUrl).hostname}
-        </div>
+    // 處理切換註解顯示
+    const toggleInfo = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowInfo(!showInfo);
+    }
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (!confirm('Sure to delete?')) return;
 
-        {/* ⬇️ [新增] Tags Display Area */}
-        {item.tags && item.tags.length > 0 && (
-          <div className="pl-[44px] flex flex-wrap gap-1.5 mt-auto pt-2">
-            {item.tags.map(tag => (
-              <span 
-                key={tag} 
-                className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-secondary text-secondary-foreground opacity-80"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-        
-      </a>
+        // 呼叫 Server Action
+        // 注意：這裡需要你知道 categoryId 和 groupId。
+        // 建議將這兩個 ID 也傳入 SmartLinkCard 的 props 中
+        await deleteLink(categoryId, groupId, item.id);
+    };
 
-      {/* Actions Toolbar (懸浮在底部或角落的操作按鈕) 
+    return (
+        <div className="group relative rounded-lg border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md hover:border-primary/50">
+            {/* 主要連結區域 (整個卡片可點擊) */}
+            <a
+                href={resolvedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block p-4 h-full flex flex-col"
+            >
+                <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                        <div className={cn("p-2 rounded-md bg-muted transition-colors group-hover:bg-primary/10 group-hover:text-primary")}>
+                            <DynamicIcon name={item.icon || 'Link'} className="w-5 h-5" />
+                        </div>
+                        <h3 className="font-semibold leading-none tracking-tight truncate max-w-[180px]" title={item.title}>
+                            {item.title}
+                        </h3>
+                    </div>
+
+                    {/* 右上角角標區 (External Icon) */}
+                    <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+
+                {/* URL Preview (顯示解析後的網域，增加信任感) */}
+                <div className="text-xs text-muted-foreground truncate pl-[44px] mb-2 opacity-70 font-mono">
+                    {new URL(resolvedUrl).hostname}
+                </div>
+
+                {/* ⬇️ [新增] Tags Display Area */}
+                {item.tags && item.tags.length > 0 && (
+                    <div className="pl-[44px] flex flex-wrap gap-1.5 mt-auto pt-2">
+                        {item.tags.map(tag => (
+                            <span
+                                key={tag}
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-secondary text-secondary-foreground opacity-80"
+                            >
+                                #{tag}
+                            </span>
+                        ))}
+                    </div>
+                )}
+
+            </a>
+
+            {/* Actions Toolbar (懸浮在底部或角落的操作按鈕) 
         使用 absolute positioning 讓它不佔據 layout 空間
       */}
-      <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-card/80 backdrop-blur rounded-md p-1 border shadow-sm z-10">
-        {/* 註解按鈕 (如果有的話) */}
-        {item.description && (
-          <button 
-            onClick={toggleInfo}
-            className={cn("p-1.5 rounded-md hover:bg-muted transition-colors", showInfo && "bg-muted text-primary")}
-            title="Toggle description"
-          >
-            <Info className="w-4 h-4" />
-          </button>
-        )}
-        
-        {/* 複製按鈕 */}
-        <button 
-          onClick={handleCopy}
-          className="p-1.5 rounded-md hover:bg-muted transition-colors"
-          title="Copy resolved URL"
-        >
-          {isCopied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-        </button>
-      </div>
+            <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-card/80 backdrop-blur rounded-md p-1 border shadow-sm z-10">
+                {/* 註解按鈕 (如果有的話) */}
+                {item.description && (
+                    <button
+                        onClick={toggleInfo}
+                        className={cn("p-1.5 rounded-md hover:bg-muted transition-colors", showInfo && "bg-muted text-primary")}
+                        title="Toggle description"
+                    >
+                        <Info className="w-4 h-4" />
+                    </button>
+                )}
 
-      {/* 註解展開區域 */}
-      {showInfo && item.description && (
-        <div className="px-4 pb-4 pt-0 text-sm text-muted-foreground animate-in fade-in slide-in-from-top-2 border-t mt-2 bg-muted/30 rounded-b-lg">
-          <div className="pt-3">
-             {/* 這裡未來可以接入 Markdown renderer */}
-             {item.description}
-          </div>
+                {/* 複製按鈕 */}
+                <button
+                    onClick={handleCopy}
+                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
+                    title="Copy resolved URL"
+                >
+                    {isCopied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                </button>
+
+                {isEditMode && (
+                    <button onClick={handleDelete} className="absolute top-2 right-2 p-1 bg-red-500 rounded text-white z-20">
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                )}
+            </div>
+
+            {/* 註解展開區域 */}
+            {showInfo && item.description && (
+                <div className="px-4 pb-4 pt-0 text-sm text-muted-foreground animate-in fade-in slide-in-from-top-2 border-t mt-2 bg-muted/30 rounded-b-lg">
+                    <div className="pt-3">
+                        {/* 這裡未來可以接入 Markdown renderer */}
+                        {item.description}
+                    </div>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }

@@ -3,7 +3,7 @@ import { SmartLinkCard } from './SmartLinkCard';
 
 // --- Molecule: LinkGroup ---
 // 負責一個小群組標題和底下的 Grid
-function LinkGroup({ group }: { group: LinkGroupType }) {
+function LinkGroup({ group, categoryId }: { group: LinkGroupType, categoryId: string }) {
   if (group.items.length === 0) return null;
 
   return (
@@ -14,7 +14,12 @@ function LinkGroup({ group }: { group: LinkGroupType }) {
       {/* 響應式 Grid 佈局 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {group.items.map(item => (
-          <SmartLinkCard key={item.id} item={item} />
+          <SmartLinkCard 
+            key={item.id} 
+            item={item} 
+            categoryId={categoryId} 
+            groupId={group.id} 
+          />
         ))}
       </div>
     </div>
@@ -34,7 +39,11 @@ export function CategorySection({ category }: { category: Category }) {
       </h2>
       <div className="space-y-8">
         {category.groups.map(group => (
-           <LinkGroup key={group.id} group={group} />
+           <LinkGroup 
+             key={group.id} 
+             group={group} 
+             categoryId={category.id} 
+           />
         ))}
       </div>
     </section>

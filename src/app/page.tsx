@@ -1,37 +1,15 @@
-'use client';
+import { getCategories } from '@/lib/actions'; // Server Action
+import ClientDashboard from '@/components/dashboard/ClientDashboard'; // 下一步建立
 
-import { useNavStore } from '@/lib/store';
-import { CategorySection } from '@/components/dashboard/GridSections';
-import { AlertTriangle } from 'lucide-react';
-
-export default function Home() {
-  // 1. 從 Store 獲取完整設定檔
-  const { config } = useNavStore();
-  const { categories } = config;
-
-  // 處理空資料狀態 (DX 友善提示)
-  if (!categories || categories.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[50vh] text-muted-foreground">
-        <AlertTriangle className="w-12 h-12 mb-4 opacity-50" />
-        <h2 className="text-xl font-semibold">No links configuration found</h2>
-        <p>Please check your <code>data.json</code> file.</p>
-      </div>
-    );
-  }
+// 這是 Server Component (預設)
+export default async function Home() {
+  // 直接從 DB 拿資料
+  const categories = await getCategories();
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* 這裡未來可以放一個 Page Header，例如「早安，工程師」 
-        或者顯示一些系統公告
-      */}
-      
-      {/* 主 Grid 區域 */}
-      <div className="py-4">
-        {categories.map(category => (
-          <CategorySection key={category.id} category={category} />
-        ))}
-      </div>
+    <div className="max-w-7xl mx-auto py-4">
+      {/* 將資料傳給 Client Component 進行渲染與 Zustand 初始化 */}
+      <ClientDashboard initialCategories={categories} />
     </div>
   );
 }

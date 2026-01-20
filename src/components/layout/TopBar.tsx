@@ -1,12 +1,13 @@
 'use client';
 
-import { Terminal } from 'lucide-react';
+import { Terminal, Edit3 } from 'lucide-react';
 import { EnvironmentSwitcher } from '@/components/dashboard/EnvironmentSwitcher';
 import { useNavStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 export function TopBar() {
     // 2. 獲取 setSearchOpen Action
-    const setSearchOpen = useNavStore(state => state.setSearchOpen);
+    const { setSearchOpen, isEditMode, toggleEditMode } = useNavStore();
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -29,9 +30,27 @@ export function TopBar() {
                     </button>
                 </div>
 
-                {/* Right Section: Environment Switcher */}
+                {/* Right Section */}
                 <div className="flex items-center gap-2">
-                    <EnvironmentSwitcher />
+                
+                {/* ⬇️ [新增] Edit Mode Toggle Button */}
+                <button
+                    onClick={toggleEditMode}
+                    title={isEditMode ? "Exit Edit Mode" : "Enter Edit Mode"}
+                    className={cn(
+                    "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors h-9 w-9",
+                    "hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                    // 當編輯模式開啟時，按鈕變成琥珀色/橘色，強烈提示使用者
+                    isEditMode 
+                        ? "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50" 
+                        : "text-muted-foreground"
+                    )}
+                >
+                    <Edit3 className="w-4 h-4" />
+                </button>
+
+                {/* Environment Switcher (保持不變) */}
+                <EnvironmentSwitcher />
                 </div>
             </div>
         </header>

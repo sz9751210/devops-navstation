@@ -14,6 +14,9 @@ interface NavState {
   // [新增] 搜尋視窗狀態
   isSearchOpen: boolean;
 
+  // ⬇️ [新增] 編輯模式狀態
+  isEditMode: boolean;
+
   // Actions
   setEnvironment: (id: EnvironmentKey) => void;
   setSearchQuery: (query: string) => void;
@@ -23,6 +26,11 @@ interface NavState {
 
   // Selectors (Helpers)
   getCurrentEnv: () => Environment;
+
+  // ⬇️ [新增] 切換動作
+  toggleEditMode: () => void;
+
+  setCategories: (categories: Category[]) => void;
 }
 
 export const useNavStore = create<NavState>((set, get) => ({
@@ -34,16 +42,26 @@ export const useNavStore = create<NavState>((set, get) => ({
   // [新增] 預設關閉
   isSearchOpen: false,
 
+  // ⬇️ [新增] 預設關閉
+  isEditMode: false,
+
   // 2. Actions
   setEnvironment: (id) => set({ currentEnvId: id }),
   setSearchQuery: (query) => set({ searchQuery: query }),
 
   // [新增] Action
   setSearchOpen: (isOpen) => set({ isSearchOpen: isOpen }),
+
+  // ⬇️ [新增] 切換邏輯
+  toggleEditMode: () => set((state) => ({ isEditMode: !state.isEditMode })),
   
   // 3. Helper to get the full Environment object
   getCurrentEnv: () => {
     const { config, currentEnvId } = get();
     return config.environments.find(e => e.id === currentEnvId) || config.environments[0];
-  }
+  },
+
+  setCategories: (categories) => set((state) => ({ 
+  config: { ...state.config, categories } 
+})),
 }));
