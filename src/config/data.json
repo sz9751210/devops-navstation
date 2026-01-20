@@ -1,0 +1,43 @@
+{
+  "environments": [
+    {
+      "id": "local",
+      "label": "Localhost",
+      "themeColor": "border-gray-500",
+      "variables": { "base_url": "localhost:3000", "grafana_id": "dev" }
+    },
+    {
+      "id": "dev",
+      "label": "Development",
+      "themeColor": "border-green-500",
+      "variables": { "base_url": "dev.api.com", "grafana_id": "dev-cluster" }
+    },
+    {
+      "id": "prod",
+      "label": "Production",
+      "themeColor": "border-red-600",
+      "variables": { "base_url": "api.company.com", "grafana_id": "prod-main" }
+    }
+  ],
+  "categories": [
+    {
+      "id": "obs",
+      "title": "Observability",
+      "groups": [
+        {
+          "id": "metrics",
+          "title": "Metrics",
+          "items": [
+            {
+              "id": "grafana",
+              "title": "Grafana Dashboard",
+              "icon": "Activity",
+              "urlTemplate": "https://grafana.{{base_url}}/d/{{grafana_id}}",
+              "description": "主要監控面板"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
