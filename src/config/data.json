@@ -33,7 +33,8 @@
               "title": "Grafana Dashboard",
               "icon": "Activity",
               "urlTemplate": "https://grafana.{{base_url}}/d/{{grafana_id}}",
-              "description": "主要監控面板"
+              "description": "主要監控面板",
+              "tags": ["daily", "critical", "ops"]
             }
           ]
         }

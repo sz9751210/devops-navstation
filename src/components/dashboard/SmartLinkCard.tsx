@@ -54,7 +54,7 @@ export function SmartLinkCard({ item }: SmartLinkCardProps) {
         href={resolvedUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="block p-4 h-full"
+        className="block p-4 h-full flex flex-col"
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-3">
@@ -74,6 +74,21 @@ export function SmartLinkCard({ item }: SmartLinkCardProps) {
         <div className="text-xs text-muted-foreground truncate pl-[44px] mb-2 opacity-70 font-mono">
           {new URL(resolvedUrl).hostname}
         </div>
+
+        {/* ⬇️ [新增] Tags Display Area */}
+        {item.tags && item.tags.length > 0 && (
+          <div className="pl-[44px] flex flex-wrap gap-1.5 mt-auto pt-2">
+            {item.tags.map(tag => (
+              <span 
+                key={tag} 
+                className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-secondary text-secondary-foreground opacity-80"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+        
       </a>
 
       {/* Actions Toolbar (懸浮在底部或角落的操作按鈕) 
