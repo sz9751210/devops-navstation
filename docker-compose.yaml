@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # 1. 資料庫服務
+  mongodb:
+    image: mongo:8.0
+    container_name: nav_mongodb
+    restart: always
+    ports:
+      - '27017:27017'
+    environment:
+      # 這是 Root 帳號，用來執行 init script
+      # MONGO_INITDB_ROOT_USERNAME: root
+      # MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      # 指定初始化的 DB 名稱
+      MONGO_INITDB_DATABASE: devops_nav_db
+    volumes:
+      # [關鍵] 掛載初始化腳本到特定目錄
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+      # 持久化資料儲存 (以免重啟後資料不見)
+      # - mongodb_data:/data/db
+
+  # # 2. 資料庫管理 GUI (Optional DX Tool)
+  # mongo-express:
+  #   image: mongo-express
+  #   container_name: nav_mongo_express
+  #   restart: always
+  #   ports:
+  #     - '8081:8081'
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: root
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: rootpassword
+  #     ME_CONFIG_MONGODB_URL: mongodb://root:rootpassword@mongodb:27017/
+  #     ME_CONFIG_BASICAUTH_USERNAME: admin
+  #     ME_CONFIG_BASICAUTH_PASSWORD: password
+  #   depends_on:
+  #     - mongodb
+
+# volumes:
+#   mongodb_data:
