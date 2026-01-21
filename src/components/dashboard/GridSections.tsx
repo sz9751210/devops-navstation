@@ -23,7 +23,7 @@ function LinkGroup({ group, categoryId }: { group: LinkGroupType, categoryId: st
   if (group.items.length === 0 && !isEditMode) return null;
 
   return (
-    <div className="mb-8">
+    <div id={group.id} className="mb-8">
       <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider pl-1">
         {group.title}
       </h3>
