@@ -9,6 +9,10 @@ import { AddLinkDialog } from './AddLinkDialog';
 import { DragDropContext, Draggable, DropResult } from '@hello-pangea/dnd';
 import { StrictModeDroppable } from '@/components/ui/StrictModeDroppable';
 import { reorderLinks } from '@/lib/actions';
+import { deleteCategory } from '@/lib/actions';
+import { Trash2 } from 'lucide-react';
+import { addGroup } from '@/lib/actions';
+import { FolderPlus } from 'lucide-react';
 
 // --- Molecule: LinkGroup ---
 // 負責一個小群組標題和底下的 Grid
@@ -85,12 +89,12 @@ function LinkGroup({ group, categoryId }: { group: LinkGroupType, categoryId: st
         )}
       </StrictModeDroppable>
       {/* 4. ⬇️ [新增] Modal Component */}
-        <AddLinkDialog
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          categoryId={categoryId}
-          groupId={group.id}
-        />
+      <AddLinkDialog
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        categoryId={categoryId}
+        groupId={group.id}
+      />
     </div >
   );
 }
@@ -98,9 +102,19 @@ function LinkGroup({ group, categoryId }: { group: LinkGroupType, categoryId: st
 
 // --- CategorySection (這裡處理 Context) ---
 export function CategorySection({ category }: { category: Category }) {
-  const { reorderGroupItems } = useNavStore();
+  const { reorderGroupItems, isEditMode } = useNavStore();
 
-  if (!category.groups || category.groups.length === 0) return null;
+
+  // 處理刪除分類
+  const handleDeleteCategory = async () => {
+    const confirmMsg = `Are you sure you want to delete category "${category.title}"? \nAll links inside will be removed permanently.`;
+    if (!confirm(confirmMsg)) return;
+
+    await deleteCategory(category.id);
+  };
+
+  // 即使 groups 是空的，如果是 Edit Mode 也要顯示分類，這樣才能看得到「刪除按鈕」或之後的「新增群組」
+  if ((!category.groups || category.groups.length === 0) && !isEditMode) return null;
 
   const onDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
@@ -121,42 +135,77 @@ export function CategorySection({ category }: { category: Category }) {
     // 這裡我們需要從 Store 取得最新的狀態，或者簡單地在 local 計算
     // 為了簡單起見，我們重新計算一下順序 ID
     const group = category.groups.find(g => g.id === groupId);
-    if(group) {
-        const newOrderIds = Array.from(group.items);
-        const [removed] = newOrderIds.splice(sourceIndex, 1);
-        newOrderIds.splice(destIndex, 0, removed);
-        const orderedIds = newOrderIds.map(item => item.id);
+    if (group) {
+      const newOrderIds = Array.from(group.items);
+      const [removed] = newOrderIds.splice(sourceIndex, 1);
+      newOrderIds.splice(destIndex, 0, removed);
+      const orderedIds = newOrderIds.map(item => item.id);
 
-        // 3. Backend Update (後端存檔)
-        try {
-            await reorderLinks(category.id, groupId, orderedIds);
-        } catch (error) {
-            console.error("Failed to reorder:", error);
-            alert("Failed to save order");
-            // 這裡理論上應該要 rollback state，但為了教學簡化先略過
-        }
+      // 3. Backend Update (後端存檔)
+      try {
+        await reorderLinks(category.id, groupId, orderedIds);
+      } catch (error) {
+        console.error("Failed to reorder:", error);
+        alert("Failed to save order");
+        // 這裡理論上應該要 rollback state，但為了教學簡化先略過
+      }
     }
+
   };
+  const handleAddGroup = async () => {
+    const title = prompt("Enter new group name (e.g. 'Documentation')");
+    if (title) {
+      await addGroup(category.id, title);
+    }
+  }
 
   return (
-    <section id={category.id} className="mb-12 scroll-mt-20">
-      <h2 className="text-2xl font-bold tracking-tight mb-6 border-b pb-2">
-        {category.title}
-      </h2>
+    <section id={category.id} className="mb-12 scroll-mt-20 group/category">
+
+      {/* 標題列 */}
+      <div className="flex items-center gap-4 mb-6 border-b pb-2">
+        <h2 className="text-2xl font-bold tracking-tight">
+          {category.title}
+        </h2>
+
+        {/* 2. 刪除分類按鈕 (Edit Mode Only) */}
+        {isEditMode && (
+          <button
+            onClick={handleDeleteCategory}
+            className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors opacity-0 group-hover/category:opacity-100"
+            title="Delete Category"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
       <div className="space-y-8">
         {/* 我們把 Context 放在 Category 層級，
           這樣如果未來要做「跨群組拖曳」會比較容易擴充。
           目前每個 Category 都有獨立的 Context，互不干擾。
         */}
         <DragDropContext onDragEnd={onDragEnd}>
-            {category.groups.map(group => (
-                <LinkGroup 
-                    key={group.id} 
-                    group={group} 
-                    categoryId={category.id} 
-                />
-            ))}
+          {/* 3. 安全性檢查：如果 groups 存在才 map，避免新分類報錯 */}
+          {category.groups?.map(group => (
+            <LinkGroup
+              key={group.id}
+              group={group}
+              categoryId={category.id}
+            />
+          ))}
         </DragDropContext>
+
+        {/* 新增群組按鈕 */}
+        {isEditMode && (
+          <button
+            onClick={handleAddGroup}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors px-1"
+          >
+            <FolderPlus className="w-4 h-4" />
+            <span>Add Group</span>
+          </button>
+        )}
       </div>
     </section>
   );

@@ -117,3 +117,47 @@ export async function reorderLinks(categoryId: string, groupId: string, orderedL
   revalidatePath('/');
   return { success: true };
 }
+
+// --- CREATE CATEGORY ---
+export async function addCategory(title: string) {
+  await connectDB();
+
+  // 自動生成 ID: "My Tools" -> "my-tools"
+  // 加上隨機數避免重複 (簡單實作)
+  const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.floor(Math.random() * 1000);
+
+  // 取得目前最大的 order，排在最後面
+  const lastCategory = await CategoryModel.findOne().sort({ order: -1 });
+  const newOrder = lastCategory ? lastCategory.order + 1 : 1;
+
+  await CategoryModel.create({
+    id,
+    title,
+    order: newOrder,
+    groups: [] // 初始為空群組
+  });
+
+  revalidatePath('/');
+  return { success: true };
+}
+
+// --- DELETE CATEGORY ---
+export async function deleteCategory(categoryId: string) {
+  await connectDB();
+  
+  await CategoryModel.deleteOne({ id: categoryId });
+
+  revalidatePath('/');
+  return { success: true };
+}
+
+export async function addGroup(categoryId: string, title: string) {
+  await connectDB();
+  const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  
+  await CategoryModel.updateOne(
+    { id: categoryId },
+    { $push: { groups: { id, title, items: [] } } }
+  );
+  revalidatePath('/');
+}

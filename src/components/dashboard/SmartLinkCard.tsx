@@ -36,6 +36,19 @@ export function SmartLinkCard({ item, categoryId, groupId }: SmartLinkCardProps)
     // 3. 核心魔術：計算最終 URL
     const resolvedUrl = resolveUrl(item.urlTemplate, currentEnv);
 
+    // ⬇️ [新增] 安全的 Hostname 解析邏輯
+    // 這樣就算網址格式錯誤，或是還沒填寫，也不會讓整個頁面當機
+    let displayHostname = '';
+    try {
+        if (resolvedUrl) {
+            displayHostname = new URL(resolvedUrl).hostname;
+        }
+    } catch (e) {
+        // 如果解析失敗 (例如使用者只填了 'localhost' 沒填 'http://')
+        // 我們就直接顯示原始字串，或者顯示 'Invalid URL'
+        displayHostname = resolvedUrl || 'No URL';
+    }
+
     // 處理複製連結到剪貼簿
     const handleCopy = async (e: React.MouseEvent) => {
         e.preventDefault(); // 防止觸發外層連結跳轉
@@ -96,7 +109,7 @@ export function SmartLinkCard({ item, categoryId, groupId }: SmartLinkCardProps)
 
                 {/* URL Preview (顯示解析後的網域，增加信任感) */}
                 <div className="text-xs text-muted-foreground truncate pl-[44px] mb-2 opacity-70 font-mono">
-                    {new URL(resolvedUrl).hostname}
+                    {displayHostname}
                 </div>
 
                 {/* ⬇️ [新增] Tags Display Area */}
