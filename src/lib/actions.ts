@@ -17,13 +17,17 @@ export async function getCategories() {
 
 // --- CREATE LINK ---
 // 這是一個範例：新增連結到指定分類的指定群組
-export async function addLink(categoryId: string, groupId: string, linkData: any) {
+export async function addLink(categoryId: string, groupId: string, formData: any) {
   await connectDB();
   
   const newLink = {
     id: uuidv4(),
-    ...linkData,
-    tags: linkData.tags ? linkData.tags.split(',').map((t: string) => t.trim()) : []
+    title: formData.title,
+    urlTemplate: formData.urlTemplate,
+    description: formData.description,
+    icon: formData.icon || 'Link', // 預設 Icon
+    tags: formData.tags ? formData.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : [],
+    visibleIn: [] // 預設全環境顯示，進階可再加 checkbox
   };
 
   await CategoryModel.updateOne(
