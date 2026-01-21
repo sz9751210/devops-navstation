@@ -85,3 +85,35 @@ export async function updateLink(categoryId: string, groupId: string, linkId: st
   revalidatePath('/');
   return { success: true };
 }
+
+// --- REORDER LINKS ---
+export async function reorderLinks(categoryId: string, groupId: string, orderedLinkIds: string[]) {
+  await connectDB();
+
+  // 1. 找到該分類
+  const category = await CategoryModel.findOne({ id: categoryId });
+  if (!category) throw new Error("Category not found");
+
+  // 2. 找到該群組
+  const group = category.groups.find((g: any) => g.id === groupId);
+  if (!group) throw new Error("Group not found");
+
+  // 3. 根據傳入的 ID 列表，重新排列 items
+  // 我們建立一個 Map 來快速查找現有物件
+  const itemMap = new Map(group.items.map((item: any) => [item.id, item]));
+  
+  // 重組陣列
+  const newItems = orderedLinkIds
+    .map(id => itemMap.get(id))
+    .filter(item => item !== undefined); // 過濾掉可能的錯誤
+
+  // 4. 更新資料庫
+  // 這裡我們直接替換整個 items 陣列
+  await CategoryModel.updateOne(
+    { "id": categoryId, "groups.id": groupId },
+    { $set: { "groups.$.items": newItems } }
+  );
+
+  revalidatePath('/');
+  return { success: true };
+}
