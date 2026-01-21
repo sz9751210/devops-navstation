@@ -5,10 +5,11 @@ import { useNavStore } from '@/lib/store';
 import { LinkItem } from '@/types/config';
 import { resolveUrl, isLinkVisible } from '@/lib/url-resolver';
 import { DynamicIcon } from '@/components/ui/DynamicIcon';
-import { ExternalLink, Copy, Check, Info } from 'lucide-react';
+import { ExternalLink, Copy, Check, Info, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { deleteLink } from '@/lib/actions';
 import { Trash2 } from 'lucide-react';
+import { EditLinkDialog } from './EditLinkDialog';
 
 interface SmartLinkCardProps {
     item: LinkItem;
@@ -21,6 +22,9 @@ export function SmartLinkCard({ item, categoryId, groupId }: SmartLinkCardProps)
     const [showInfo, setShowInfo] = useState(false);
 
     const { getCurrentEnv, isEditMode } = useNavStore();
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
     // 1. 從 Store 獲取當前環境完整物件
     const currentEnv = useNavStore(state => state.getCurrentEnv());
 
@@ -59,6 +63,12 @@ export function SmartLinkCard({ item, categoryId, groupId }: SmartLinkCardProps)
         // 注意：這裡需要你知道 categoryId 和 groupId。
         // 建議將這兩個 ID 也傳入 SmartLinkCard 的 props 中
         await deleteLink(categoryId, groupId, item.id);
+    };
+
+    const handleEdit = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsEditModalOpen(true);
     };
 
     return (
@@ -128,13 +138,29 @@ export function SmartLinkCard({ item, categoryId, groupId }: SmartLinkCardProps)
                 >
                     {isCopied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                 </button>
-
-                {isEditMode && (
-                    <button onClick={handleDelete} className="absolute top-2 right-2 p-1 bg-red-500 rounded text-white z-20">
-                        <Trash2 className="w-4 h-4" />
-                    </button>
-                )}
             </div>
+
+            {isEditMode && (
+                <div className="absolute top-2 right-2 flex gap-1 z-20">
+                    {/* Edit Button */}
+                    <button
+                        onClick={handleEdit}
+                        className="p-1.5 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded shadow-sm"
+                        title="Edit Link"
+                    >
+                        <Pencil className="w-3.5 h-3.5" />
+                    </button>
+
+                    {/* Delete Button */}
+                    <button
+                        onClick={handleDelete}
+                        className="p-1.5 bg-red-500 text-white hover:bg-red-600 rounded shadow-sm"
+                        title="Delete Link"
+                    >
+                        <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
 
             {/* 註解展開區域 */}
             {showInfo && item.description && (
@@ -145,6 +171,15 @@ export function SmartLinkCard({ item, categoryId, groupId }: SmartLinkCardProps)
                     </div>
                 </div>
             )}
+
+            {/* ⬇️ [新增] 掛載編輯視窗 */}
+            <EditLinkDialog
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                categoryId={categoryId}
+                groupId={groupId}
+                item={item}
+            />
         </div>
     );
 }

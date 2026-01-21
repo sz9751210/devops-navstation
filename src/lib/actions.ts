@@ -55,3 +55,33 @@ export async function deleteLink(categoryId: string, groupId: string, linkId: st
 
   revalidatePath('/');
 }
+
+// --- UPDATE LINK ---
+export async function updateLink(categoryId: string, groupId: string, linkId: string, formData: any) {
+  await connectDB();
+
+  // 準備要更新的資料物件
+  const updatedFields = {
+    "groups.$[g].items.$[i].title": formData.title,
+    "groups.$[g].items.$[i].urlTemplate": formData.urlTemplate,
+    "groups.$[g].items.$[i].description": formData.description,
+    "groups.$[g].items.$[i].icon": formData.icon,
+    "groups.$[g].items.$[i].tags": formData.tags ? formData.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : [],
+    // 這裡我們保留原本的 visibleIn，除非你也想在表單編輯它
+  };
+
+  await CategoryModel.updateOne(
+    { "id": categoryId }, // 1. 找到該 Category Document
+    { $set: updatedFields }, // 2. 設定新值
+    { 
+      // 3. 定義過濾條件 (變數 g 代表 group, i 代表 item)
+      arrayFilters: [
+        { "g.id": groupId },
+        { "i.id": linkId }
+      ]
+    }
+  );
+
+  revalidatePath('/');
+  return { success: true };
+}
