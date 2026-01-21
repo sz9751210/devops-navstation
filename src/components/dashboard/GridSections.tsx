@@ -160,23 +160,27 @@ export function CategorySection({ category }: { category: Category }) {
   }
 
   return (
-    <section id={category.id} className="mb-12 scroll-mt-20 group/category">
+    <section id={category.id} className="mb-16 scroll-mt-24 group/category">
 
-      {/* 標題列 */}
-      <div className="flex items-center gap-4 mb-6 border-b pb-2">
-        <h2 className="text-2xl font-bold tracking-tight">
+      <div className="flex items-end gap-4 mb-8 border-b border-border/60 pb-4">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">
           {category.title}
         </h2>
+        <span className="text-sm text-muted-foreground pb-1 font-mono opacity-50">
+          #{category.id}
+        </span>
 
         {/* 2. 刪除分類按鈕 (Edit Mode Only) */}
         {isEditMode && (
-          <button
-            onClick={handleDeleteCategory}
-            className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors opacity-0 group-hover/category:opacity-100"
-            title="Delete Category"
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
+          <div className="ml-auto">
+            <button
+              onClick={handleDeleteCategory}
+              className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors opacity-0 group-hover/category:opacity-100"
+              title="Delete Category"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          </div>
         )}
       </div>
 

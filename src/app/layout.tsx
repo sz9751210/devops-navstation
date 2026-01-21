@@ -25,14 +25,16 @@ export default function RootLayout({
         <TopBar />
 
         {/* 主要佈局容器：Flex Row */}
-        <div className="flex-1 container flex items-start gap-6 md:gap-10">
+        <div className="flex-1 flex items-start">
 
           {/* 左側：Sidebar */}
           <Sidebar />
 
           {/* 右側：主內容 */}
-          <main className="flex-1 py-6 min-w-0">
-            {children}
+          <main className="flex-1 min-w-0 px-8 py-8 md:px-12 lg:px-16">
+            <div className="max-w-6xl mx-auto"> {/* 限制內容最大寬度，避免在大螢幕太散 */}
+              {children}
+            </div>
           </main>
         </div>
 

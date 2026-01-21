@@ -91,7 +91,16 @@ export function SmartLinkCard({ item, categoryId, groupId }: SmartLinkCardProps)
                 href={resolvedUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block p-4 h-full flex flex-col"
+                className={cn(
+                    // ... 原本的 class ...
+                    "relative flex flex-col h-full p-5 rounded-xl border transition-all duration-300",
+                    "bg-card/30 border-white/5 backdrop-blur-sm",
+
+                    // ⬇️ ⚠️ 加入這行：強制文字顏色為 foreground (白色)，並取消底線
+                    "text-foreground no-underline",
+
+                    "hover:bg-card/50 hover:border-primary/30 hover:shadow-lg hover:-translate-y-1 hover:shadow-primary/5"
+                )}
             >
                 <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-3">
