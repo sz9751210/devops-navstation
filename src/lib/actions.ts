@@ -161,3 +161,31 @@ export async function addGroup(categoryId: string, title: string) {
   );
   revalidatePath('/');
 }
+
+// --- UPDATE CATEGORY TITLE ---
+export async function updateCategory(categoryId: string, newTitle: string) {
+  await connectDB();
+  
+  await CategoryModel.updateOne(
+    { id: categoryId },
+    { title: newTitle }
+  );
+
+  revalidatePath('/');
+  return { success: true };
+}
+
+// --- UPDATE GROUP TITLE ---
+export async function updateGroup(categoryId: string, groupId: string, newTitle: string) {
+  await connectDB();
+
+  await CategoryModel.updateOne(
+    { "id": categoryId, "groups.id": groupId },
+    { 
+      $set: { "groups.$.title": newTitle } 
+    }
+  );
+
+  revalidatePath('/');
+  return { success: true };
+}

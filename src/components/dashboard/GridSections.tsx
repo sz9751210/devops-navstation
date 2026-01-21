@@ -9,10 +9,13 @@ import { AddLinkDialog } from './AddLinkDialog';
 import { DragDropContext, Draggable, DropResult } from '@hello-pangea/dnd';
 import { StrictModeDroppable } from '@/components/ui/StrictModeDroppable';
 import { reorderLinks } from '@/lib/actions';
-import { deleteCategory } from '@/lib/actions';
-import { Trash2 } from 'lucide-react';
-import { addGroup } from '@/lib/actions';
-import { FolderPlus } from 'lucide-react';
+import {
+  deleteCategory,
+  addGroup,
+  updateCategory,
+  updateGroup
+} from '@/lib/actions';
+import { Trash2, FolderPlus, Pencil } from 'lucide-react';
 
 // --- Molecule: LinkGroup ---
 // 負責一個小群組標題和底下的 Grid
@@ -20,17 +23,37 @@ function LinkGroup({ group, categoryId }: { group: LinkGroupType, categoryId: st
   const { isEditMode } = useNavStore(); // 1. 讀取編輯模式
   const [isAddModalOpen, setIsAddModalOpen] = useState(false); // 2. 控制 Modal 開關
 
+  // ⬇️ [新增] 處理群組更名
+  const handleEditGroup = async () => {
+    const newTitle = prompt("Enter new group name:", group.title);
+    if (newTitle && newTitle !== group.title) {
+      await updateGroup(categoryId, group.id, newTitle);
+    }
+  };
+
   if (group.items.length === 0 && !isEditMode) return null;
 
   return (
-    <div id={group.id} className="mb-8">
-      <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider pl-1">
-        {group.title}
-      </h3>
-      {/* 1. Droppable ID 必須唯一，我們用 groupId。
+    <div id={group.id} className="mb-8 scroll-mt-24">
+      <div className="flex items-center gap-2 mb-3 pl-1">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          {group.title}
+        </h3>
+        {/* 1. Droppable ID 必須唯一，我們用 groupId。
          2. direction="horizontal" 是因為我們是 Grid 佈局，但這在 Grid 有點tricky，
             如果你的 grid 是多行的，dnd 預設的鍵盤導航可能怪怪的，但滑鼠拖曳通常沒問題。
       */}
+        {/* ⬇️ [新增] 編輯按鈕 (Edit Mode Only) */}
+        {isEditMode && (
+          <button
+            onClick={handleEditGroup}
+            className="p-1 text-muted-foreground/50 hover:text-primary transition-colors"
+            title="Rename Group"
+          >
+            <Pencil className="w-3 h-3" />
+          </button>
+        )}
+      </div>
       <StrictModeDroppable droppableId={group.id} direction="horizontal">
         {(provided) => (
           <div
@@ -104,6 +127,13 @@ function LinkGroup({ group, categoryId }: { group: LinkGroupType, categoryId: st
 export function CategorySection({ category }: { category: Category }) {
   const { reorderGroupItems, isEditMode } = useNavStore();
 
+  // ⬇️ [新增] 處理分類更名
+  const handleEditCategory = async () => {
+    const newTitle = prompt("Enter new category name:", category.title);
+    if (newTitle && newTitle !== category.title) {
+      await updateCategory(category.id, newTitle);
+    }
+  };
 
   // 處理刪除分類
   const handleDeleteCategory = async () => {
@@ -163,16 +193,28 @@ export function CategorySection({ category }: { category: Category }) {
     <section id={category.id} className="mb-16 scroll-mt-24 group/category">
 
       <div className="flex items-end gap-4 mb-8 border-b border-border/60 pb-4">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">
-          {category.title}
-        </h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">
+            {category.title}
+          </h2>
+          {/* ⬇️ [新增] 編輯按鈕 (Edit Mode Only) */}
+          {isEditMode && (
+            <button
+              onClick={handleEditCategory}
+              className="p-1.5 text-muted-foreground hover:text-primary hover:bg-muted rounded-md transition-colors"
+              title="Rename Category"
+            >
+              <Pencil className="w-5 h-5" />
+            </button>
+          )}
+        </div>
         <span className="text-sm text-muted-foreground pb-1 font-mono opacity-50">
           #{category.id}
         </span>
 
         {/* 2. 刪除分類按鈕 (Edit Mode Only) */}
         {isEditMode && (
-          <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
             <button
               onClick={handleDeleteCategory}
               className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors opacity-0 group-hover/category:opacity-100"
